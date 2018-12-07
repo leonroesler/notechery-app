@@ -1,10 +1,6 @@
 import { AsyncStorage } from 'react-native';
 import axios from 'axios';
 import {
-    TEMPERATURE,
-    WIND_DIRECTION,
-    WIND_SPEED,
-    WEATHER_CONDITION,
     LOAD_DATA,
     FETCHING_COMPLETE
   } from './types';
@@ -23,7 +19,6 @@ export const fetchWeather = () => {
             });
   
             let direction = result.data.wind.deg
-            console.log(direction)
             switch (true) {
               case (direction >= 337.51 && direction <= 22.5):
                 direction = 'Norden';
@@ -53,7 +48,6 @@ export const fetchWeather = () => {
               direction = 'Nicht definierbar';
               break;
             }
-            console.log(direction)
             dispatch({ type: FETCHING_COMPLETE, payload: { temperature: result.data.main.temp, windSpeed: result.data.wind.speed, windDirection: direction, isLoading: false }})
           } catch( error){ console.log('Datenermittlung fehlgeschlagen')}
       

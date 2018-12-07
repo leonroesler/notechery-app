@@ -2,25 +2,51 @@ import React, { Component } from 'react';
 import { View, Text,  Dimensions, ActivityIndicator } from 'react-native';
 import { Icon, Button } from 'react-native-elements';
 import ActionButton from 'react-native-action-button';
+import moment from 'moment'
+import 'moment/locale/de'
 
 import * as actions from '../actions';
 import { connect } from 'react-redux';
+import colors from '../styles/colors';
 
 const { width, height } = Dimensions.get('window');
 
 class HomeScreen extends Component {
+
+    state = {
+        currentDate: '',
+    }
+    static navigationOptions = () => {
+        return {
+            tabBarIcon: ({ tintColor }) => {
+              return <Icon name="dashboard" size={20} color={tintColor} />;
+             }
+        }
+    }
+    
     
      componentDidMount () {
         this.props.fetchWeather();
+        this.actualDate()
     }
-
-    userLogout = () => {
+    componentWillReceiveProps(nextProps) {
+        if(nextProps.loggedIn === false)
         this.props.navigation.navigate('main')
     }
-        
+   
+    logout = () => {
+        this.props.userLogout()
+    }
+
+    actualDate () {
+        const currentDate = new Date()
+        const formattedDate = (moment(currentDate).format('LL'))
+        this.setState({ currentDate: formattedDate})
+    }
+         
     render() {
         const {headlineText, sublineText, defaultText, highlightedText, container,containerData, iconContainer } = styles;
-        const { temperature, weatherConditions, windDirection, windSpeed, isLoading } = this.props;
+        const { temperature, windDirection, windSpeed, isLoading } = this.props;
 
         if (isLoading) {
             return (
@@ -54,7 +80,7 @@ class HomeScreen extends Component {
                     type='material-community'
                     color='#DE2E2E'
                 />
-                <Text style={defaultText}> DEFAULT DATE</Text>
+                <Text style={defaultText}> {this.state.currentDate}</Text>
                 </View>
                 <View style={iconContainer}>
                     <Icon
@@ -71,7 +97,7 @@ class HomeScreen extends Component {
                         color='#DE2E2E'
                         onPress={() => console.log('hello')} 
                     />
-                     <Text style={defaultText}> {temperature}</Text>
+                     <Text style={defaultText}> {Math.round(temperature)}°</Text>
                 </View>
                 <View style={iconContainer}>
                     <Icon
@@ -80,7 +106,7 @@ class HomeScreen extends Component {
                         color='#DE2E2E'
                         onPress={() => console.log('hello')} 
                     />
-                     <Text style={defaultText}> {windSpeed}m/s aus {windDirection}</Text>
+                     <Text style={defaultText}> {windSpeed} m/s aus {windDirection}</Text>
                 </View>
 
                 <View>
@@ -102,7 +128,7 @@ class HomeScreen extends Component {
                 </View> 
             </View>
             <ActionButton buttonColor="rgba(222,46,46,1)" offsetX={10} offsetY={10} bgColor='rgba(0,0,0,0.7)' fixNativeFeedbackRadius>
-                    <ActionButton.Item buttonColor='#9b59b6' title="New Task" onPress={this.userLogout}>
+                    <ActionButton.Item buttonColor='#9b59b6' title="New Task" onPress={this.logout}>
                         <Icon 
                         name='md-sunny'
                         type='ionicon' 
@@ -155,7 +181,7 @@ const styles = {
         marginTop: 30,
     },
     highlightedText: {
-        color: '#DE2E2E', 
+        color: colors.red, 
     },
     defaultText: {
        paddingLeft: 15,

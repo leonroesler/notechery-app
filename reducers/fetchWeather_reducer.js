@@ -1,8 +1,4 @@
 import {
-  TEMPERATURE,
-  WIND_DIRECTION,
-  WIND_SPEED,
-  WEATHER_CONDITION,
   LOAD_DATA,
   FETCHING_COMPLETE
 } from '../actions/types';

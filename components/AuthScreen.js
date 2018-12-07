@@ -3,21 +3,23 @@ import {
     View, 
     Text, 
     Dimensions, 
-    Keyboard, 
+    Keyboard,
+    Image,
     TouchableWithoutFeedback, 
     ActivityIndicator, 
     TouchableOpacity,
-    ToastAndroid
+    ToastAndroid,
 } from 'react-native';
 
-import { Icon, Button } from 'react-native-elements';
+import { Icon, Button, Card } from 'react-native-elements';
 import firebase from 'firebase';
 import { connect } from 'react-redux';
 
 import colors from '../styles/colors';
 import * as actions from '../actions'
 import Textinput from './reusable/Textinput';
-import HomeScreen from './HomeScreen';
+import CustomModal from './reusable/CustomModal';
+import NewAccount from './NewAccount';
 
 const { width, height} = Dimensions.get('window')
 class AuthScreen extends Component {
@@ -32,10 +34,11 @@ class AuthScreen extends Component {
         password: '',
         loggedIn: null,
         togglePassword: true,
-        autologin: false
+        showModal: false
     }
 
     componentDidMount() {
+        console.log(' Auth Screen wird gemounted')
        this.props.tryAutoLogin()
        this.loginComplete(this.props)
     }
@@ -45,10 +48,9 @@ class AuthScreen extends Component {
         this.loginComplete(nextProps)
     }
     loginComplete = (props) => {
-        if (props.autoLogin) {
+        if (props.autoLogin ) {
             this.props.navigation.navigate('home')
-        }
-        
+        } 
     }
 
     evaluateEmail = (value) => {
@@ -62,10 +64,11 @@ class AuthScreen extends Component {
     skipLogin = () => {
         this.props.navigation.navigate('home')
     }
-    login = () => {
+    attemptLogin = () => {
         const { email, password } = this.state
         this.props.userLogin(email, password, () => {this.showToast();})
     }
+
 
     togglePassword = () => {
         this.setState({ togglePassword: !this.state.togglePassword})
@@ -83,9 +86,15 @@ class AuthScreen extends Component {
       }
     }
 
+    toggleModal = () => {
+        this.setState({ showModal: !this.state.showModal })
+    }
+   
+
     render() {
-        const { containerStyle } = styles
-        if(this.state.loggedIn === null) {
+        const { containerStyle, imageContainer } = styles
+        const { loggedIn, isLoading } = this.props
+        if(loggedIn === null || isLoading === true) {
             return (
             <View style={{ flex: 1, justifyContent: 'center', alignContent: 'center'}}>
                 <ActivityIndicator size="large" color="#DE2E2E"/>
@@ -96,8 +105,21 @@ class AuthScreen extends Component {
         return (
             <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
             <View style={containerStyle}>
+            <CustomModal
+          isVisible={this.state.showModal}
+          close={() => this.setState({ showModal: false })}
+            >
+            <NewAccount close={this.toggleModal}/>
+          </CustomModal>
+        
+                <View style={imageContainer}>
+                    <Image
+                    style={styles.canvas}
+                    source={require('../images/notecheryLauncher.png')}
+                    />
+                </View>
                 <View  style={{ flexDirection: 'row', marginLeft: width * 0.1  ,
-        marginRight: width * 0.1, alignItems: 'flex-end'}}>
+                 marginRight: width * 0.1, alignItems: 'flex-end'}}>
                     <Icon
                     name='account'
                     type='material-community'
@@ -106,7 +128,7 @@ class AuthScreen extends Component {
                     iconStyle={{ marginRight: 5 }}
                     />
                     <Textinput 
-                        label='E-Mail'
+                        label='E-Mail Adresse'
                         onChangeText={this.evaluateEmail}
                         value={this.state.email}
                         inputLength={ width * 0.7}
@@ -127,13 +149,13 @@ class AuthScreen extends Component {
                         onChangeText={this.evaluatePassword}
                         value={this.state.password}
                         secureTextEntry={this.state.togglePassword}
-                        inputLength={ width * 0.6}
+                        inputLength={ width * 0.62}
                     />
                     <TouchableOpacity  
                 style={{ marginLeft: 5}}
                 onPress={this.togglePassword}
                 >
-                {!this.state.showPassword ? <Icon 
+                {!this.state.togglePassword ? <Icon 
                  name='eye'
                  type='entypo'
                  size={25}   
@@ -152,7 +174,7 @@ class AuthScreen extends Component {
                     rounded
                     color='#fff'
                     containerViewStyle={{ marginVertical: 70, marginHorizontal: width * 0.1, paddingHorizontal: width * 0.1}}
-                    onPress={this.login}
+                    onPress={this.attemptLogin}
                     />
 
                     <Button 
@@ -168,6 +190,7 @@ class AuthScreen extends Component {
                     transparent
                     color='#DE2E2E'
                     containerViewStyle={{ marginHorizontal: width * 0.1, paddingHorizontal: width * 0.1}}
+                    onPress={this.toggleModal}
                     />
                 </View>
                 
@@ -181,8 +204,20 @@ const styles = {
     containerStyle: {
         flex: 1,
         justifyContent: 'center',
-        backgroundColor: '#F7F7F7'
-    }
+        backgroundColor: '#F7F7F7',
+        
+    },
+    imageContainer: {
+        flex: 1,
+        width: width * 0.5,
+        justifyContent: 'center',
+        alignSelf: 'center',
+    },
+    canvas: {
+        width: 150,
+        height: 150,
+        alignSelf: 'center'
+      },
 }
 
 const mapStateToProps = ({auth}) => {
